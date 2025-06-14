@@ -19,15 +19,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-NAGTOKEN="data.status.toLowerCase() !== 'active'"
+NAGTOKEN="(function\(orig_cmd\) \{)"
 NAGFILE="/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js"
 SCRIPT="$(basename "$0")"
 
 # disable license nag: https://johnscs.com/remove-proxmox51-subscription-notice/
 
-if grep -qs "$NAGTOKEN" "$NAGFILE" > /dev/null 2>&1; then
+if grep -Eqs "$NAGTOKEN" "$NAGFILE" > /dev/null 2>&1; then
   echo "$SCRIPT: Removing Nag ..."
-  sed -i.orig "s/$NAGTOKEN/false/g" "$NAGFILE"
+  sed -Ezi.orig "s/$NAGTOKEN/\1\n\torig_cmd\(\);\n\treturn;/g" "$NAGFILE" # Taken from https://mclarendatasystems.com/remove-proxmox51-subscription-notice/
   systemctl restart pveproxy.service
 fi
 
